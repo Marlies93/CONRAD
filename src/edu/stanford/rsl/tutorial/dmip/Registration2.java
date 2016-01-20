@@ -27,6 +27,11 @@ import ij.gui.PlotWindow;
  * Exercise 7 of Diagnostic Medical Image Processing (DMIP)
  * Using Mutual Information to solve the registration problem
  * @author Bastian Bier
+ * 
+ * KL Divergence to measure difference
+ * mutual information maxi: Want that one image tells us a lot about the other
+ * using entropy H
+ * use marginalization for pdf => sum over one dim
  *
  */
 public class Registration2 {
@@ -147,12 +152,16 @@ public class Registration2 {
 		{
 			if(histo1.getElement(i) != 0)
 			{
-				// TODO: calculate entropy for histogram 1
+				// TODO: calculate entropy for histogram 1 (do minus in the end)
+				entropy_histo1 += histo1.getElement(i) * Math.log(histo1.getElement(i)) / Math.log(2); 
+				// end TODO
 			}
 			
 			if(histo2.getElement(i) != 0)
 			{
-				// TODO: calculate entropy for histogram 2
+				// TODO: calculate entropy for histogram 2 (do minus in the end)
+				entropy_histo2 += histo2.getElement(i) * Math.log(histo2.getElement(i)) / Math.log(2);
+				// end TODO
 			}
 		}
 		
@@ -163,6 +172,8 @@ public class Registration2 {
 				if(jointHistogram.getElement(i, j) != 0)
 				{
 					// TODO: calculate entropy of the joint histogram
+					entropy_jointHisto += jointHistogram.getElement(i, j) * Math.log(jointHistogram.getElement(i,  j)) / Math.log(2);
+					// end TODO
 				}
 			}
 		}
@@ -171,12 +182,17 @@ public class Registration2 {
 		// TODO
 		// TODO
 		// TODO
+		entropy_histo1 = - entropy_histo1;
+		entropy_histo2 = - entropy_histo2;
+		entropy_jointHisto = - entropy_jointHisto;
+		// end TODO
 		
 		// Step 4: Calculate the mutual information
 		// Note: The mutual information is high for a good match
 		// but we require a minimization problem --> the result is inverted to fit the optimizer
-		double mutual_information = 0;
 		// TODO: calculate the mutual information
+		double mutual_information = entropy_jointHisto - ( entropy_histo1 + entropy_histo2);
+		// end TODO
 		
 		return mutual_information * 1000;
 	}
@@ -196,6 +212,10 @@ public class Registration2 {
 		for (int i = 0; i < histSize; i++) {
 			for (int j = 0; j < histSize; j++) {
 				// TODO
+				int value_ref = (int) im1.getAtIndex(i, j);
+				int value_mov = (int) im2.getAtIndex(i, j);
+				jH.setElementValue(value_ref, value_mov, jH.getElement(value_ref, value_mov) + 1);
+				// end TODO
 			}
 		}
 		
@@ -203,6 +223,8 @@ public class Registration2 {
 		for (int i = 0; i < histSize; i++) {
 			for (int j = 0; j < histSize; j++) {
 				// TODO
+				jH.setElementValue( i, j, jH.getElement(i,  j) / (im1.getWidth() * im1.getHeight()) );
+				// end TODO
 			}
 		}
 		
@@ -226,6 +248,8 @@ public class Registration2 {
 			for(int j = 0; j < histSize; j++)
 			{
 				// TODO: sum up over the columns
+				hist.setElementValue(i, (float) ( hist.getElement(i) + jH.getElement(i, j)) );
+				// end TODO
 			}
 		}
 		
@@ -266,9 +290,8 @@ public class Registration2 {
 		ImageJ ij = new ImageJ();
 		
 		// Load images
-		// TODO Adjust paths
-		String filename1 = "C:/StanfordRepo/CONRAD/src/edu/stanford/rsl/tutorial/dmip/T1.png";
-		String filename2 = "C:/StanfordRepo/CONRAD/src/edu/stanford/rsl/tutorial/dmip/Proton.png";
+		String filename1 = "/proj/i5dmip/qe21vady/Reconstruction/CONRAD/src/edu/stanford/rsl/tutorial/dmip/T1.png";
+		String filename2 = "/proj/i5dmip/qe21vady/Reconstruction/CONRAD/src/edu/stanford/rsl/tutorial/dmip/Proton.png";
 		
 		Grid2D image1 = ImageUtil.wrapImagePlus(IJ.openImage(filename1)).getSubGrid(0);
 		Grid2D image2 = ImageUtil.wrapImagePlus(IJ.openImage(filename2)).getSubGrid(0);
@@ -288,6 +311,7 @@ public class Registration2 {
 		image2.setSpacing(1);
 		
 		// Blurred Images for the registration to avoid local minima during optimization
+		// => optimization prob. faster and don't run in local minima
 		Grid2D image1_blurred = new Grid2D(image1);
 		Grid2D image2_blurred = new Grid2D(image2);
 		

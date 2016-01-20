@@ -11,6 +11,16 @@ import ij.gui.Plot;
  * Exercise 7 of Diagnostic Medical Image Processing (DMIP)
  * @author Bastian Bier
  *
+ * kinds of registration:
+ * rigid (not good for organ movement) and non rigid
+ * same or different modalities
+ * 
+ * SSD don't work if you have different modalities
+ * 
+ * Registration is often calculated on downsampled and blurred images. So the
+ * algo will not stick to small differences. 
+ *
+ *
  */
 public class Registration1 {
 	
@@ -34,16 +44,24 @@ public class Registration1 {
 			if(i < numPoints)
 			{
 				// TODO
-				// TODO
-				// TODO
-				// TODO
+				// q
+				m.setElementValue(i, 0, q.getElement(i, 0));
+				m.setElementValue(i, 1, -q.getElement(i,  1));
+				
+				m.setElementValue(i, 2, 1);
+				m.setElementValue(i, 3, 0);
+				// end TODO
 			}
 			if(i >= numPoints)
 			{
 				// TODO
-				// TODO
-				// TODO
-				// TODO
+				// q
+				m.setElementValue(i, 0, q.getElement(i - numPoints, 1));
+				m.setElementValue(i, 1, q.getElement(i - numPoints, 0));
+				
+				m.setElementValue(i, 2, 0);
+				m.setElementValue(i, 3, 1);
+				// end TODO
 			}
 		}
 		
@@ -55,11 +73,15 @@ public class Registration1 {
 			if(i < numPoints)
 			{
 				// TODO
+				b.setElementValue(i, p.getElement(i, 0));
+				// end TODO
 			}
 			
 			if(i >= numPoints)
 			{
 				// TODO
+				b.setElementValue(i, p.getElement(i - numPoints, 1));
+				// end TODO
 			}
 		}
 		
@@ -78,9 +100,14 @@ public class Registration1 {
 		
 		
 		// TODO: normalize r
+		double abs_r = Math.sqrt(r1*r1 + r2*r2);
+		r1 = r1 / abs_r;
+		r2 = r2 / abs_r;
+		// end TODO
 		
-		
-		double phi = 0; // TODO
+		//TODO
+		double phi = Math.atan(r2/r1);
+		// end TODO
 		
 		// Write the result for the translation and the rotation into the result vector
 		SimpleVector result = new SimpleVector(phi, t1, t2);
@@ -93,17 +120,20 @@ public class Registration1 {
 		
 		SimpleMatrix r = new SimpleMatrix(2,2);
 		// TODO: fill the rotation matrix
+		r.setElementValue(0, 0,  Math.cos(phi));
+		r.setElementValue(0, 1, -Math.sin(phi));
+		r.setElementValue(1, 0,  Math.sin(phi));
+		r.setElementValue(1, 1,  Math.cos(phi));
+		// end TODO
 		
-		// TODO
-		// TODO
-		// TODO
-		// TODO
-
 		SimpleMatrix transformedPoints = new SimpleMatrix(points.getRows(), points.getCols());
 				
 		for(int i = 0; i < transformedPoints.getRows(); i++)
 		{
 			// TODO: transform points
+			transformedPoints.setRowValue(i, SimpleOperators.multiply(r, points.getRow(i)));
+			transformedPoints.setRowValue(i, SimpleOperators.add(transformedPoints.getRow(i), translation));
+			// end TODO
 			
 		}
 		
